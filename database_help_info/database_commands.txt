@@ -1,0 +1,51 @@
+// Tworzenie węzłów gatunków muzycznych
+CREATE (g1:Genre {name: 'Rock'})
+CREATE (g2:Genre {name: 'Pop'})
+CREATE (g3:Genre {name: 'Jazz'})
+CREATE (g4:Genre {name: 'Hip-Hop'})
+CREATE (g5:Genre {name: 'Elektronika'})
+CREATE (g6:Genre {name: 'Metal'})
+CREATE (g7:Genre {name: 'Classical'})
+CREATE (g8:Genre {name: 'Blues'})
+CREATE (g9:Genre {name: 'R&B'})
+CREATE (g10:Genre {name: 'Country'})
+
+// Przypisywanie gatunków do utworów
+// Załóżmy, że mamy już wcześniej utworzone utwory t1 i t2
+
+// Przypiszmy "Let It Be" (Rock) i "Hello" (Pop)
+CREATE (t1)-[:BELONGS_TO]->(g1)
+CREATE (t2)-[:BELONGS_TO]->(g2)
+
+// Możemy dodać więcej utworów, np.:
+CREATE (t3:Track {title: 'Bohemian Rhapsody', release_year: 1975})
+CREATE (t4:Track {title: 'Take Five', release_year: 1959})
+CREATE (t5:Track {title: 'Lose Yourself', release_year: 2002})
+CREATE (t6:Track {title: 'Strobe', release_year: 2009})
+CREATE (t7:Track {title: 'Master of Puppets', release_year: 1986})
+CREATE (t8:Track {title: 'Symphony No. 9', release_year: 1824})
+CREATE (t9:Track {title: 'The Thrill is Gone', release_year: 1969})
+CREATE (t10:Track {title: 'Blinding Lights', release_year: 2020})
+CREATE (t11:Track {title: 'Jolene', release_year: 1973})
+
+// Łączenie nowych utworów z gatunkami
+CREATE (t3)-[:BELONGS_TO]->(g1)  // Bohemian Rhapsody - Rock
+CREATE (t4)-[:BELONGS_TO]->(g3)  // Take Five - Jazz
+CREATE (t5)-[:BELONGS_TO]->(g4)  // Lose Yourself - Hip-Hop
+CREATE (t6)-[:BELONGS_TO]->(g5)  // Strobe - Elektronika
+CREATE (t7)-[:BELONGS_TO]->(g6)  // Master of Puppets - Metal
+CREATE (t8)-[:BELONGS_TO]->(g7)  // Symphony No. 9 - Classical
+CREATE (t9)-[:BELONGS_TO]->(g8)  // The Thrill is Gone - Blues
+CREATE (t10)-[:BELONGS_TO]->(g9) // Blinding Lights - R&B
+CREATE (t11)-[:BELONGS_TO]->(g10) // Jolene - Country
+
+
+
+
+// Usunięcie wszystkich relacji
+MATCH ()-[r]->()
+DELETE r
+
+// Usunięcie wszystkich węzłów
+MATCH (n)
+DELETE n
