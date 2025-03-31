@@ -2,17 +2,21 @@ import tkinter as tk
 from neo4j import GraphDatabase
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
 
 # Konfiguracja Spotify API
-SPOTIPY_CLIENT_ID = "your_client_id"
-SPOTIPY_CLIENT_SECRET = "your_client_secret"
-sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=SPOTIPY_CLIENT_ID,
-                                                           client_secret=SPOTIPY_CLIENT_SECRET))
+CLIENT_ID = os.getenv("CLIENT_ID")
+CLIENT_SECRET = os.getenv("CLIENT_SECRET")
+sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=CLIENT_ID,
+                                                           client_secret=CLIENT_SECRET))
 
 # Konfiguracja Neo4j
-NEO4J_URI = "neo4j+s://5bd822a5.databases.neo4j.io"
-NEO4J_USER = "neo4j"
-NEO4J_PASSWORD = "ccRa8Rm0x0ISGWe3ZTeE6cbFRA3m6FLntiAcQVmQFUM"
+NEO4J_URI = os.getenv("NEO4J_URI")
+NEO4J_USER = os.getenv("NEO4J_USER")
+NEO4J_PASSWORD = os.getenv("NEO4J_PASSWORD")
 
 def get_recommendations():
     query = entry.get()
