@@ -4,7 +4,7 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 from dotenv import load_dotenv
 import os
-from spotify_api import search_tracks
+from spotify_api import search_tracks, popular_genres, search_by_genre
 
 load_dotenv()
 
@@ -84,6 +84,17 @@ def on_search():
     if query:
         tracks = search_tracks(sp,query)
         display_results(tracks)
+
+def on_genre_search():
+    genre = genre_var.get()
+    if genre:
+        tracks = search_by_genre(genre)
+        display_results(tracks)
+        
+# genre_var = tk.StringVar()
+# genre_dropdown = tk.Combobox(root, textvariable=genre_var, values=popular_genres)
+# genre_dropdown.set("Wybierz gatunek")
+# genre_dropdown.pack(pady=10)
 
 driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
 
