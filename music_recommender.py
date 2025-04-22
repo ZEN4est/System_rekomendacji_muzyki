@@ -4,6 +4,7 @@ import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 from dotenv import load_dotenv
 import os
+from spotify_api import search_tracks
 
 load_dotenv()
 
@@ -59,6 +60,30 @@ def add_similarity():
             MERGE (s2)-[:SIMILAR_TO]->(s1)
         """, song1=song1, song2=song2)
     text_output.insert(tk.END, f"Dodano relację podobieństwa: {song1} <-> {song2}\n")
+
+# GUI resultframe to frame z w ktorym wyswietlimy wyniki do przerobienia jak bedzie miesjce
+def display_results(tracks):
+    for widget in results_frame.winfo_children():
+        widget.destroy()
+
+    for track in tracks:
+        name = track['name']
+        artists = ', '.join(artist['name'] for artist in track['artists'])
+        track_info = f"{name} – {artists}"
+        label = tk.Label(results_frame, text=track_info)
+        label.pack(anchor='w')
+
+        button = tk.Button(results_frame, text="Dodaj do ulubionych", command=lambda t=track: on_select(t))
+        button.pack(anchor='e')
+
+def on_select(track):
+    print(f"Wybrano: {track['name']} - {track['artists'][0]['name']}")
+
+def on_search():
+    query = entry.get()
+    if query:
+        tracks = search_tracks(sp,query)
+        display_results(tracks)
 
 driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
 
