@@ -5,6 +5,7 @@ from spotipy.oauth2 import SpotifyClientCredentials
 from dotenv import load_dotenv
 import os
 from spotify_api import search_tracks, popular_genres, search_by_genre
+from login import create_login_window
 
 load_dotenv()
 
@@ -96,8 +97,12 @@ def on_genre_search():
 # genre_dropdown.set("Wybierz gatunek")
 # genre_dropdown.pack(pady=10)
 
-driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
+closed_manually = create_login_window()
 
+if closed_manually:
+    exit(0)
+
+driver = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD))
 # GUI
 root = tk.Tk()
 root.title("Rekomendacje Muzyczne")
