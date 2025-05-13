@@ -1,73 +1,122 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, messagebox
 import tkinter.font as tkFont
+from user import User
+from sqlalchemy.orm import sessionmaker
+from dotenv import load_dotenv
+import os
+from sqlalchemy import create_engine
+from main_app import open_main_window
 
+load_dotenv()
 
+DATABASE_URL = os.getenv("POSTGRESQL_URL")
+engine = create_engine(DATABASE_URL)
+Session = sessionmaker(bind=engine)
+session = Session()
 
 def create_login_window():
-    closed_manually = False
+    def switch_frame(target):
+        login_frame.pack_forget()
+        register_frame.pack_forget()
+        if target == "login":
+            login_frame.pack(expand=True)
+        else:
+            register_frame.pack(expand=True)
 
     def handle_login():
-        # Placeholder for login functionality
-        pass
+        username = login_username_entry.get().strip()
+        password = login_password_entry.get().strip()
+        user = session.query(User).filter_by(username=username, password=password).first()
+        if user:
+            root.destroy()
+            open_main_window(user,session)
+        else:
+            messagebox.showerror("Błąd", "Nieprawidłowy login lub hasło.")
 
     def handle_register():
-        # Placeholder for register functionality
-        pass
+        first_name = register_first_name_entry.get().strip()
+        last_name = register_last_name_entry.get().strip()
+        username = register_username_entry.get().strip()
+        email = register_email_entry.get().strip()
+        password = register_password_entry.get().strip()
 
-    def on_window_close(root):
-        nonlocal closed_manually
-        closed_manually = True
-        root.destroy()
+        if not all([first_name, last_name, username, email, password]):
+            messagebox.showerror("Błąd", "Wszystkie pola są wymagane.")
+            return
 
-    # Create the main application window
+        new_user = User(
+            first_name=first_name,
+            last_name=last_name,
+            username=username,
+            email=email,
+            password=password
+        )
+        try:
+            session.add(new_user)
+            session.commit()
+            messagebox.showinfo("Sukces", "Zarejestrowano pomyślnie! Teraz możesz się zalogować.")
+            switch_frame("login")
+        except Exception as e:
+            session.rollback()
+            messagebox.showerror("Błąd przy rejestracji", str(e))
+
     root = tk.Tk()
-    root.title("Login/Register")
-    root.geometry("400x350")
-    root.resizable(False, False)
-    label_font = tkFont.Font(family="Segoe UI", size=12, weight="bold")
-    other_font = tkFont.Font(family="Segoe UI", size=12)
+    root.title("Logowanie / Rejestracja")
+    root.geometry("500x500")
+    root.configure(bg="#003d2f")
 
+    # Styl przycisków przełączających
+    tab_frame = tk.Frame(root, bg="#003d2f")
+    tab_frame.pack(pady=(10, 0))
 
-    root.protocol("WM_DELETE_WINDOW", lambda: on_window_close(root))
+    login_tab_btn = tk.Button(tab_frame, text="Logowanie", font=("Segoe UI", 12, "bold"), bg="#004635", fg="white",
+                              relief="flat", padx=20, pady=5, command=lambda: switch_frame("login"))
+    login_tab_btn.grid(row=0, column=0, padx=5)
 
-    # Create the tab control
-    notebook = ttk.Notebook(root)
+    register_tab_btn = tk.Button(tab_frame, text="Rejestracja", font=("Segoe UI", 12, "bold"), bg="#004635", fg="white",
+                                 relief="flat", padx=20, pady=5, command=lambda: switch_frame("register"))
+    register_tab_btn.grid(row=0, column=1, padx=5)
 
-    # Create frames for Login and Register tabs
-    login_frame = ttk.Frame(notebook)
-    register_frame = ttk.Frame(notebook)
+    # ------------------ Login Frame ------------------
+    login_frame = tk.Frame(root, bg="#003d2f")
+    login_frame.pack(expand=True)
 
-    notebook.add(login_frame, text="Logowanie")
-    notebook.add(register_frame, text="Rejestracja")
-    notebook.pack(expand=True, fill="both")
-
-    # ------------------ Login Tab ------------------
-    ttk.Label(login_frame, text="Nazwa użytkownika:", font=label_font).pack(pady=(20, 5))
-    login_username_entry = ttk.Entry(login_frame)
+    tk.Label(login_frame, text="Nazwa użytkownika", bg="#003d2f", fg="#3fbf7f", font=("Segoe UI", 12)).pack(pady=(40, 5))
+    login_username_entry = tk.Entry(login_frame, font=("Segoe UI", 12))
     login_username_entry.pack()
 
-    ttk.Label(login_frame, text="Hasło:", font=label_font).pack(pady=(10, 5))
-    login_password_entry = ttk.Entry(login_frame, show="*")
+    tk.Label(login_frame, text="Hasło", bg="#003d2f", fg="#3fbf7f", font=("Segoe UI", 12)).pack(pady=(20, 5))
+    login_password_entry = tk.Entry(login_frame, show="*", font=("Segoe UI", 12))
     login_password_entry.pack()
 
-    ttk.Button(login_frame, text="Zaloguj się", command=root.destroy).pack(pady=20)
+    tk.Button(login_frame, text="Zaloguj się", command=handle_login,
+              bg="white", fg="#003d2f", font=("Segoe UI", 12), padx=20, pady=5).pack(pady=40)
 
-    # ------------------ Register Tab ------------------
-    ttk.Label(register_frame, text="Nazwa użytkownika:", font=label_font).pack(pady=(20, 5))
-    register_username_entry = ttk.Entry(register_frame)
+    # ------------------ Register Frame ------------------
+    register_frame = tk.Frame(root, bg="#003d2f")
+
+    tk.Label(register_frame, text="Imię", bg="#003d2f", fg="#3fbf7f", font=("Segoe UI", 12)).pack(pady=(20, 5))
+    register_first_name_entry = tk.Entry(register_frame, font=("Segoe UI", 12))
+    register_first_name_entry.pack()
+
+    tk.Label(register_frame, text="Nazwisko", bg="#003d2f", fg="#3fbf7f", font=("Segoe UI", 12)).pack(pady=(10, 5))
+    register_last_name_entry = tk.Entry(register_frame, font=("Segoe UI", 12))
+    register_last_name_entry.pack()
+
+    tk.Label(register_frame, text="Nazwa użytkownika", bg="#003d2f", fg="#3fbf7f", font=("Segoe UI", 12)).pack(pady=(10, 5))
+    register_username_entry = tk.Entry(register_frame, font=("Segoe UI", 12))
     register_username_entry.pack()
 
-    ttk.Label(register_frame, text="E-mail:", font=label_font).pack(pady=(10, 5))
-    register_email_entry = ttk.Entry(register_frame)
+    tk.Label(register_frame, text="E-mail", bg="#003d2f", fg="#3fbf7f", font=("Segoe UI", 12)).pack(pady=(10, 5))
+    register_email_entry = tk.Entry(register_frame, font=("Segoe UI", 12))
     register_email_entry.pack()
 
-    ttk.Label(register_frame, text="Hasło:", font=label_font).pack(pady=(10, 5))
-    register_password_entry = ttk.Entry(register_frame, show="*")
+    tk.Label(register_frame, text="Hasło", bg="#003d2f", fg="#3fbf7f", font=("Segoe UI", 12)).pack(pady=(10, 5))
+    register_password_entry = tk.Entry(register_frame, show="*", font=("Segoe UI", 12))
     register_password_entry.pack()
 
-    ttk.Button(register_frame, text="Zarejestruj się", command=root.destroy).pack(pady=20)
+    tk.Button(register_frame, text="Zarejestruj się", command=handle_register,
+              bg="white", fg="#003d2f", font=("Segoe UI", 12), padx=20, pady=5).pack(pady=30)
 
-    # Run the app
     root.mainloop()
-    return closed_manually
