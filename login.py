@@ -7,13 +7,19 @@ from dotenv import load_dotenv
 import os
 from sqlalchemy import create_engine
 from main_app import open_main_window
+import spotipy
+from spotipy.oauth2 import SpotifyClientCredentials
 
 load_dotenv()
 
+CLIENT_ID = os.getenv("CLIENT_ID")
+CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 DATABASE_URL = os.getenv("POSTGRESQL_URL")
 engine = create_engine(DATABASE_URL)
 Session = sessionmaker(bind=engine)
 session = Session()
+sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=CLIENT_ID,
+                                                           client_secret=CLIENT_SECRET))
 
 def create_login_window():
     def switch_frame(target):
@@ -30,7 +36,7 @@ def create_login_window():
         user = session.query(User).filter_by(username=username, password=password).first()
         if user:
             root.destroy()
-            open_main_window(user,session)
+            open_main_window(user,session, sp)
         else:
             messagebox.showerror("Błąd", "Nieprawidłowy login lub hasło.")
 

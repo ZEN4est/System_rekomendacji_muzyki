@@ -3,8 +3,9 @@ from tkinter import ttk
 from PIL import Image, ImageTk
 import os
 from settings_window import open_settings_window
+from search import show_search_screen
 
-def open_main_window(user, session):
+def open_main_window(user, session, sp):
     root = tk.Tk()
     root.title("Główna aplikacja")
     root.geometry("900x500")
@@ -25,13 +26,16 @@ def open_main_window(user, session):
 
     # Menu boczne
     menu_items = ["Home", "Search", "Playlists", "Favourites", "Discover"]
+    implemented_items = ['Home', 'Search']
     for item in menu_items:
-        lbl = tk.Label(sidebar, text=item, fg="#9ae0b2" if item == "Home" else "white",
+        lbl = tk.Label(sidebar, text=item, fg="#9ae0b2" if item in implemented_items else "white",
                        bg="#004635", font=("Segoe UI", 12), anchor="w", padx=20)
         lbl.pack(fill="x", pady=5)
 
         if item == "Home":
             lbl.bind("<Button-1>", lambda e: show_home_screen())
+        elif item == "Search":
+            lbl.bind("<Button-1>", lambda e: show_search_screen(content_frame, sp))
 
     # Ikonka ustawień (lewy dolny róg)
     gear_icon = tk.Label(sidebar, text="⚙️", bg="#004635", fg="white", font=("Segoe UI", 16))
