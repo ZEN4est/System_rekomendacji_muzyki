@@ -1,7 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 import tkinter.font as tkFont
-from user import User
+from model.models import User
 from sqlalchemy.orm import sessionmaker
 from dotenv import load_dotenv
 import os
@@ -15,6 +15,9 @@ load_dotenv()
 CLIENT_ID = os.getenv("CLIENT_ID")
 CLIENT_SECRET = os.getenv("CLIENT_SECRET")
 DATABASE_URL = os.getenv("POSTGRESQL_URL")
+if DATABASE_URL is None:
+    print('ERROR: No database url specified.\nLeaving...')
+    exit(0)
 engine = create_engine(DATABASE_URL)
 Session = sessionmaker(bind=engine)
 session = Session()
