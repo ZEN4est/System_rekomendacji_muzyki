@@ -37,19 +37,47 @@ def open_settings_window(content_frame, user, session):
     repeat_pass = tk.Entry(frame, show="*")
     repeat_pass.grid(row=3, column=1)
 
-    # Avatar — w przyszłości możesz go dodać tutaj
-    def choose_avatar():
-        pass  # zostawione na później
+    def save_changes():
+        fname = name_entry.get().strip()
+        lname = last_entry.get().strip()
+        p1 = new_pass.get()
+        p2 = repeat_pass.get()
 
-    tk.Button(content_frame, text="Edit avatar", command=choose_avatar, bg="white", padx=20).pack(pady=(10, 20))
-    tk.Button(content_frame, text="Save", bg="white", padx=20).pack()
+        if p1 != p2:
+            messagebox.showerror("Error", "Passwords do not match.")
+            return
+
+        if not fname or not lname:
+            messagebox.showerror("Error", "Name and Lastname cannot be empty.")
+            return
+
+        from model.crud import update_user_data  # Import lokalny dla bezpieczeństwa cykli
+
+        # Jeśli hasło jest podane, zaktualizuj też je
+        result = update_user_data(session, user.user_id, first_name=fname, last_name=lname, password=p1 if p1 else None)
+
+        if result:
+            messagebox.showinfo("Success", "Account updated.")
+            # Aktualizuj obiekt użytkownika lokalnie
+            user.first_name = fname
+            user.last_name = lname
+            if p1:
+                user.password = p1
+        else:
+            messagebox.showerror("Error", "Something went wrong while updating.")
+
+    tk.Button(content_frame, text="Save", command=save_changes, bg="white", padx=20).pack()
+
 
     def delete_account():
         confirm = messagebox.askyesno("Confirm", "Are you sure you want to delete your account?")
         if confirm:
-            # if (user, "delete"):
-            print("Deleting user...")
-            user.delete(session)  # <-- Musisz mieć tę metodę!
-            content_frame.winfo_toplevel().destroy()
+            from model.crud import delete_user
+            success = delete_user(session, user.user_id)
+            if success:
+                messagebox.showinfo("Deleted", "Account has been deleted.")
+                content_frame.winfo_toplevel().destroy()
+            else:
+                messagebox.showerror("Error", "Account could not be deleted.")
 
     tk.Button(content_frame, text="Delete account", bg="red", fg="white", command=delete_account).pack(pady=20)

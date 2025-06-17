@@ -11,6 +11,11 @@ def open_main_window(user, session, sp):
     root.geometry("900x500")
     root.configure(bg="#003d2f")
 
+    def handle_logout():
+        from login import create_login_window
+        root.destroy()
+        create_login_window()
+
     # ---------------- Sidebar ----------------
     sidebar = tk.Frame(root, bg="#004635", width=200)
     sidebar.pack(side="left", fill="y")
@@ -37,6 +42,10 @@ def open_main_window(user, session, sp):
         elif item == "Search":
             lbl.bind("<Button-1>", lambda e: show_search_screen(content_frame, sp))
 
+    # Przycisk wylogowania
+    logout_button = tk.Button(sidebar, text="🔓 Wyloguj się", command=handle_logout,
+                            bg="#004635", fg="white", relief="flat", font=("Segoe UI", 12))
+    logout_button.pack(side="bottom", pady=(10, 5))
     # Ikonka ustawień (lewy dolny róg)
     gear_icon = tk.Label(sidebar, text="⚙️", bg="#004635", fg="white", font=("Segoe UI", 16))
     gear_icon.pack(side="bottom", pady=20)

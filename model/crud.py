@@ -45,6 +45,20 @@ def delete_user(session: Session, user_id):
         return True
     return False
 
+def update_user_data(session: Session, user_id, first_name=None, last_name=None, password=None):
+    user = get_user_by_id(session, user_id)
+    if user:
+        if first_name:
+            user.first_name = first_name
+        if last_name:
+            user.last_name = last_name
+        if password:
+            user.password = password
+        session.commit()
+        return True
+    return False
+
+
 
 # ========== PLAYLIST CRUD ==========
 def create_playlist(session: Session, name, user_id):
