@@ -40,6 +40,13 @@ def update_user_password(session: Session, user_id, new_password):
 def delete_user(session: Session, user_id):
     user = get_user_by_id(session, user_id)
     if user:
+        # Usuń playlisty użytkownika i powiązane PlaylistSong
+        playlists = get_playlists_by_user(session, user_id)
+        for playlist in playlists:
+            # Usuń powiązania PlaylistSong dla tej playlisty
+            session.query(PlaylistSong).filter_by(playlist_id=playlist.playlist_id).delete()
+            session.delete(playlist)
+        # Usuń użytkownika
         session.delete(user)
         session.commit()
         return True
