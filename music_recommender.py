@@ -11,6 +11,7 @@ from PIL import Image, ImageTk
 import requests
 from io import BytesIO
 from functools import partial
+from model.crud import get_songs_in_playlist, get_genres_for_song, get_artists_for_song
 
 load_dotenv()
 
@@ -256,3 +257,122 @@ driver.close()
 
 #text_output = tk.Text(root, height=15, width=50)
 #text_output.pack()
+
+
+
+"""
+nie mam pojęcia co jest u góry i czy jest potrzebne
+"""
+
+def add_song(song_id: str,
+             artist_name: str,
+             song_title: str,
+             genre_name: str,
+             language_name: str,
+             decade_int: int) -> None:
+    """
+    Dodaje piosenkę o zadanym song_id (STRING) wraz z węzłami Artist, Genre, Language i Decade.
+
+    - song_id: unikalne ID piosenki jako STRING
+    - artist, genre, language: tylko nazwy, bez własnych ID
+    - decade_int: dekada piosenki, typ INTEGER
+    """
+    cypher = """
+    MERGE (s:Song {song_id: $song_id})
+      ON CREATE SET s.title = $song_title
+
+    MERGE (a:Artist {artist_name: $artist_name})
+      ON CREATE SET a.artist_name = $artist_name
+
+    MERGE (g:Genre {genre_name: $genre_name})
+      ON CREATE SET g.genre_name = $genre_name
+
+    MERGE (l:Language {language_name: $language_name})
+      ON CREATE SET l.language_name = $language_name
+
+    MERGE (d:Decade {decade: $decade})
+
+    MERGE (s)-[:PERFORMED_BY]->(a)
+    MERGE (s)-[:OF_GENRE]->(g)
+    MERGE (s)-[:IN_LANGUAGE]->(l)
+    MERGE (s)-[:IN_DECADE]->(d)
+    """
+    with driver.session() as session:
+        session.run(
+            cypher,
+            song_id=song_id,
+            song_title=song_title,
+            artist_name=artist_name,
+            genre_name=genre_name,
+            language_name=language_name,
+            decade=decade_int
+        )
+
+
+
+def fetch_playlist_details(session, playlist_id):
+    result = []
+    songs = get_songs_in_playlist(session, playlist_id)
+    for song in songs:
+        info = {
+            "song_id": song.song_id,
+            "title": song.title,
+            "decade": song.decade,
+            "language": song.language,
+            "genres": [g.genre for g in get_genres_for_song(session, song.song_id)],
+            "artists": [a.artist for a in get_artists_for_song(session, song.song_id)]
+            }
+        result.append(info)
+    return result
+
+
+def recommend_query_attributes_graph(playlist_id):
+    """
+    Na podstawie szczegółów playlisty (lista słowników zwrócona przez fetch_playlist_details)
+    wyznacza najbardziej pasujące:
+    - gatunek (Genre)
+    - artystę (Artist)
+    - dekadę (Decade)
+
+    Zwraca słownik z kluczami: 'genre', 'artist', 'decade'.
+    Nie uwzględnia żadnych dodatkowych ID, a song_id traktuje jako string.
+    """
+    # details: [{"song_id": "1", "title": ..., ...}, ...]
+    # Extract song_ids as strings
+    song_ids = [d['song_id'] for d in playlist_id]
+
+    genre_query = """
+    WITH $ids AS ids
+    UNWIND ids AS sid
+    MATCH (s:Song {song_id: sid})-[:OF_GENRE]->(g:Genre)
+    RETURN g.genre_name AS genre, count(*) AS cnt
+    ORDER BY cnt DESC
+    LIMIT 1;
+    """
+    artist_query = """
+    WITH $ids AS ids
+    UNWIND ids AS sid
+    MATCH (s:Song {song_id: sid})-[:PERFORMED_BY]->(a:Artist)
+    RETURN a.artist_name AS artist, count(*) AS cnt
+    ORDER BY cnt DESC
+    LIMIT 1;
+    """
+    decade_query = """
+    WITH $ids AS ids
+    UNWIND ids AS sid
+    MATCH (s:Song {song_id: sid})-[:IN_DECADE]->(d:Decade)
+    RETURN d.decade AS decade, count(*) AS cnt
+    ORDER BY cnt DESC
+    LIMIT 1;
+    """
+
+    with driver.session() as session:
+        genre_rec = session.run(genre_query, ids=song_ids).single()
+        artist_rec = session.run(artist_query, ids=song_ids).single()
+        decade_rec = session.run(decade_query, ids=song_ids).single()
+
+    return {
+        'genre':  genre_rec['genre']  if genre_rec else None,
+        'artist': artist_rec['artist'] if artist_rec else None,
+        'decade': decade_rec['decade'] if decade_rec else None
+    }
