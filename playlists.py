@@ -1,3 +1,4 @@
+from cProfile import label
 import tkinter as tk
 from tkinter import ttk
 from model.models import Playlist, Song, SongArtist, PlaylistSong, User
@@ -6,7 +7,7 @@ from model.crud import get_genres_for_song, get_playlists_by_user, get_songs_in_
                        get_artists_for_song, create_song, add_song_to_playlist, add_song_if_not_exists, \
                        get_songs_in_playlist, remove_song_from_playlist
 
-def get_favorites_dict(session: Session, favorites: Playlist) -> set[str]:
+def get_favorites_set(session: Session, favorites: Playlist) -> set[str]:
     songs: list[Song] = get_songs_in_playlist(session, favorites.playlist_id)
     a = set()
     for s in songs:
@@ -15,7 +16,7 @@ def get_favorites_dict(session: Session, favorites: Playlist) -> set[str]:
 
 
 def get_song_in_playlist_frame(outer_frame: tk.Frame, session: Session, idx, h, song: Song, favorites_set: set[str], favorites_id: int) -> tk.Frame:
-    bg = '#003B2B'
+    bg = '#003d2f'
     song_color = '#3CE7A7'
     artist_color = '#2AB481'
     icon_bright = '#44FFB9'
@@ -96,34 +97,58 @@ def get_song_in_playlist_frame(outer_frame: tk.Frame, session: Session, idx, h, 
 
 def show_playlists_screen(main_frame: tk.Frame, user: User, session: Session):
     # background color, main color, dimmed main color
-    bg = '#003B2B'
+    bg = '#003d2f'
+    song_color = '#3CE7A7'
     icon_bright = '#44FFB9'
-    playlist_active = icon_bright
-    playlist_inactive = 'grey'
+    icon_dark = '#156748'
 
-    print(main_frame.winfo_height(), main_frame.winfo_width())
-    entry_font = ('Segoe UI', 12)
-    song_icon_font = ('Segoe UI', 20)
-
-    pad_small = 5
-
-    for widget in main_frame.winfo_children():
-        widget.destroy()
-
+    pad_small = 10
+    pad_big = 60
+    icon_big_font = ("Segoe UI", 100)
+    label_big_font = ("Segoe UI", 20, 'bold')
+    empty_font = ("Segoe UI", 20)
 
     user_playlists = get_playlists_by_user(session, User.user_id)
     playlist_dict = {str(p.name): p for p in user_playlists}
     favorites = playlist_dict['favorites']
+    favorites_set = get_favorites_set(session, favorites)
+
+    for widget in main_frame.winfo_children():
+        widget.destroy()
+
+    sidebar = tk.Frame(main_frame, bg=bg, width=200)
+    sidebar.pack(side="left", fill="y")
+
+    content_frame = tk.Frame(main_frame, bg=bg)
+    content_frame.pack(expand=True, fill='both')
+
+    width = 2 * main_frame.winfo_width()
+    height = int(840 * (1440 / content_frame.winfo_height()))
+    list_height = height // 14
+
+    label_frame = tk.Frame(content_frame, bg=bg)
+    label_frame.pack(pady=(0, pad_small))
+
+    playlist_icon = tk.Label(label_frame, text='🔖', font=icon_big_font, bg=bg, fg=icon_dark)
+    playlist_icon.pack(pady=(pad_big, pad_small), side=tk.LEFT)
+
+    p_text = tk.Label(label_frame, text='Playlists', font=label_big_font, fg='#3fbf7f', bg=bg)
+    p_text.pack(side=tk.LEFT, pady=(pad_big, pad_small))
+
+    user_playlists = get_playlists_by_user(session, User.user_id)
+    playlist_dict = {str(p.name): p for p in user_playlists}
+    favorites = playlist_dict['favorites']
+    favorites_set = get_favorites_set(session, favorites)
 
     # --- Main layout setup ---
-    test_frame = tk.Frame(main_frame, bg=bg, width=600)
-    test_frame.pack(expand=True, fill='y', padx=20, pady=20)
+    playlist_list_frame = tk.Frame(content_frame, bg=bg, width=width, height=height)
+    playlist_list_frame.pack()
+    playlist_list_frame.pack_propagate(False)
 
-    favorites_set = get_favorites_dict(session, favorites)
-
+    songs = get_songs_in_playlist(session, favorites.playlist_id)
     for i, song in enumerate(get_songs_in_playlist(session, favorites.playlist_id)):
         entry_frame = get_song_in_playlist_frame(
-            test_frame,
+            playlist_list_frame,
             session,
             idx=i,
             h=40, # Set a fixed height for each song entry

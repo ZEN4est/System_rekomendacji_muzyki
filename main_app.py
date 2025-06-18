@@ -5,6 +5,7 @@ import os
 from settings_window import open_settings_window
 from search import show_search_screen
 from playlists import show_playlists_screen
+from favorites import show_favorites_screen
 
 def open_main_window(user, session, sp):
     root = tk.Tk()
@@ -31,8 +32,8 @@ def open_main_window(user, session, sp):
     username_label.pack(pady=(0, 30))
 
     # Menu boczne
-    menu_items = ["Home", "Search", "Playlists", "Favourites", "Discover"]
-    implemented_items = ['Home', 'Search', 'Playlists']
+    menu_items = ["Home", "Search", "Playlists", "Favorites", "Discover"]
+    implemented_items = ['Home', 'Search', 'Playlists', 'Favorites']
     for item in menu_items:
         lbl = tk.Label(sidebar, text=item, fg="#9ae0b2" if item in implemented_items else "white",
                        bg="#004635", font=("Segoe UI", 12), anchor="w", padx=20)
@@ -44,6 +45,8 @@ def open_main_window(user, session, sp):
             lbl.bind("<Button-1>", lambda e: show_search_screen(content_frame, session, user, sp))
         elif item == "Playlists":
             lbl.bind("<Button-1>", lambda e: show_playlists_screen(content_frame, user, session))
+        elif item == "Favorites":
+            lbl.bind("<Button-1>", lambda e: show_favorites_screen(content_frame, session, user))
 
     # Przycisk wylogowania
     logout_button = tk.Button(sidebar, text="🔓 Wyloguj się", command=handle_logout,

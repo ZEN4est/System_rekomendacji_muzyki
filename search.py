@@ -3,7 +3,7 @@ from spotify_api import search_tracks, get_tracks_genre
 from sqlalchemy.orm import Session
 from model.models import User, Playlist, Song
 from model.crud import add_song_to_playlist, get_playlists_by_user, add_song_if_not_exists, remove_song_from_playlist
-from playlists import get_favorites_dict
+from playlists import get_favorites_set
 
 
 def get_song_in_search_frame(outer_frame: tk.Frame, session: Session,idx, h, 
@@ -11,19 +11,21 @@ def get_song_in_search_frame(outer_frame: tk.Frame, session: Session,idx, h,
                              title='Title', artists=['Artist1', 'Artist2'],
                              language='english', genres=['Prog rock'], decade=2020, 
                              ) -> tk.Frame:
-    bg = '#003B2B'
+    bg = '#003d2f'
     song_color = '#3CE7A7'
     artist_color = '#2AB481'
     icon_bright = '#44FFB9'
     icon_dark = '#156748'
     playlist_active = icon_bright
     playlist_inactive = 'grey'
-    entry_font = ('Segoe UI', 12)
-    song_icon_font = ('Segoe UI', 20)
 
-    pad_small = 5
+    outer_width=outer_frame.winfo_width()
+    pad_small=outer_width // 100
+    entry_font = ('Segoe UI', outer_width // 34)
+    song_icon_font = ('Segoe UI', outer_width // 15, 'bold')
+
     # The main container for one song entry. It has a fixed height.
-    frame = tk.Frame(outer_frame, bg=bg, height=h)
+    frame = tk.Frame(outer_frame, bg=bg, height=h, width=outer_width)
 
     # --- Main Grid Layout (3 columns) ---
     # Column 1 (Song Info) will expand to fill empty space.
@@ -61,6 +63,7 @@ def get_song_in_search_frame(outer_frame: tk.Frame, session: Session,idx, h,
     # --- Binding ---
     def toggle_from_favorites(_event):
         song=add_song_if_not_exists(session, track_id, title, language, decade, artists, genres)
+        print(favorites_set)
         if track_id not in favorites_set:
             add_song_to_playlist(session, favorites_id, song.song_id)
             add_label.config(fg=icon_bright)
@@ -73,11 +76,13 @@ def get_song_in_search_frame(outer_frame: tk.Frame, session: Session,idx, h,
 
 
 def show_search_screen(content_frame, session: Session, user: User, sp):
-    pad_small = 5
+    pad_small = 10
     bg, fg = "#003d2f", "#3fbf7f"
     for widget in content_frame.winfo_children():
         widget.destroy()
 
+    width = 2 * content_frame.winfo_width() // 5
+    height = int(840 * (1440 / content_frame.winfo_height()))
     user_playlists = get_playlists_by_user(session, User.user_id)
     playlist_dict = {str(p.name): p for p in user_playlists}
     favorites = playlist_dict['favorites']
@@ -100,10 +105,10 @@ def show_search_screen(content_frame, session: Session, user: User, sp):
     search_entry = tk.Entry(search_box_frame, font=("Segoe UI", 12))
     search_entry.pack(side=tk.LEFT)
 
-    search_results_frame = tk.Frame(main_frame, bg=bg)
+    search_results_frame = tk.Frame(main_frame, bg=bg, width=width, height=height)
     search_results_frame.pack()
+    search_results_frame.pack_propagate(False)
 
-    favorites_dict = get_favorites_dict(session, favorites)
     def search():
         query = search_entry.get().strip()
         if query:
@@ -120,7 +125,7 @@ def show_search_screen(content_frame, session: Session, user: User, sp):
                         genres=list(get_tracks_genre(sp, track)),
                         decade= int(track['album']['release_date'].split('-')[0]) // 10 * 10,
                         favorites_id=favorites.playlist_id,
-                        favorites_set = get_favorites_dict(session, favorites)
+                        favorites_set = get_favorites_set(session, favorites)
                 )
                 track_frame.pack_propagate(False)
                 track_frame.pack(side=tk.TOP, pady=(0, pad_small), fill='x')
