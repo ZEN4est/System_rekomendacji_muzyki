@@ -6,6 +6,7 @@ from settings_window import open_settings_window
 from search import show_search_screen
 from playlists import show_playlists_screen
 from favorites import show_favorites_screen
+from discover import show_discover_screen
 
 def open_main_window(user, session, sp):
     root = tk.Tk()
@@ -47,6 +48,8 @@ def open_main_window(user, session, sp):
             lbl.bind("<Button-1>", lambda e: show_playlists_screen(content_frame, user, session))
         elif item == "Favorites":
             lbl.bind("<Button-1>", lambda e: show_favorites_screen(content_frame, session, user))
+        elif item == "Discover":
+            lbl.bind("<Button-1>", lambda e: show_discover_screen(content_frame, session, user, sp))
 
     # Przycisk wylogowania
     logout_button = tk.Button(sidebar, text="🔓 Wyloguj się", command=handle_logout,

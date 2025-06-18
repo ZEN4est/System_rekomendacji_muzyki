@@ -40,8 +40,8 @@ def search_tracks_with_filters(sp, artist=None, decade=None, genre=None, languag
         query_parts.append(f"genre:{genre}")
     if decade:
         # przykład: "1990-1999"
-        start_year = int(decade[:4])
-        end_year = int(decade[-4:])
+        start_year = decade
+        end_year   = decade + 9
         query_parts.append(f"year:{start_year}-{end_year}")
     if language:
         query_parts.append(f"tag:{language}") #język nie jest bezpośrednio obsługiwany, to obejście
