@@ -9,6 +9,8 @@ from sqlalchemy import create_engine
 from main_app import open_main_window
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
+from model.crud import create_user
+from sqlalchemy import text
 
 load_dotenv()
 
@@ -21,6 +23,8 @@ if DATABASE_URL is None:
 engine = create_engine(DATABASE_URL)
 Session = sessionmaker(bind=engine)
 session = Session()
+#print("ASDASDAS")
+#print(session.execute(text("SELECT * FROM songgenres;")).all())
 sp = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=CLIENT_ID,
                                                            client_secret=CLIENT_SECRET))
 
@@ -54,16 +58,8 @@ def create_login_window():
             messagebox.showerror("Błąd", "Wszystkie pola są wymagane.")
             return
 
-        new_user = User(
-            first_name=first_name,
-            last_name=last_name,
-            username=username,
-            email=email,
-            password=password
-        )
         try:
-            session.add(new_user)
-            session.commit()
+            _new_user = create_user(session, username, first_name, last_name, email, password)
             messagebox.showinfo("Sukces", "Zarejestrowano pomyślnie! Teraz możesz się zalogować.")
             switch_frame("login")
         except Exception as e:

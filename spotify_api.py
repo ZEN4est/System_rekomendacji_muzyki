@@ -20,6 +20,16 @@ def search_by_genre(sp, genre,country, limit=10):
 
     return tracks
 
+def get_tracks_genre(sp, track):
+    artists = track['artists']
+    ids = map(lambda x: x['id'], artists)
+    artists = sp.artists(list(ids))['artists']
+    genres = set()
+    for artist in artists:
+        for genre in artist['genres']:
+            genres.add(genre)
+    return genres
+
 # tamta funcke mozna wywyalic i moze ogaranac tylko ta
 def search_tracks_with_filters(sp, artist=None, decade=None, genre=None, language=None, use_favourites=False):
     query_parts = []
