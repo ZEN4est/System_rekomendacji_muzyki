@@ -66,8 +66,11 @@ class ScrollablePopup:
             remove_song_from_playlist(self.session, playlist_id=playlist.playlist_id, song_id=self.song.song_id)
             print(f'Removed {self.song.title} from {playlist.name}')
         else:
-            add_song_to_playlist(self.session, playlist_id=playlist.playlist_id, song_id=self.song.song_id)
-            print(f'Added {self.song.title} to {playlist.name}')
+            if get_playlist_song(self.session, playlist_id=playlist.playlist_id, song_id=self.song.song_id) is None:
+                add_song_to_playlist(self.session, playlist_id=playlist.playlist_id, song_id=self.song.song_id)
+                print(f'Added {self.song.title} to {playlist.name}')
+            else:
+                print(f'Song {self.song.title} to {playlist.name}')
 
         self.on_close_popup()
 
@@ -188,9 +191,7 @@ def show_favorites_screen(content_frame: tk.Frame, session: Session, user: User)
     favorites_list_frame.pack()
     favorites_list_frame.pack_propagate(False)
 
-    plalists_id_to_haas_song = {}
     playlists_all = get_playlists_by_user(session, user.user_id)
-
 
     songs = get_songs_in_playlist(session, favorites.playlist_id)
     if len(songs) == 0:
