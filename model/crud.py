@@ -1,4 +1,5 @@
 from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.sql.functions import user
 from .models import User, Playlist, Song, PlaylistSong, SongArtist, SongGenre
 
 # ========== USER CRUD ==========
@@ -78,6 +79,9 @@ def create_playlist(session: Session, name, user_id):
 def get_playlist_by_id(session: Session, playlist_id):
     return session.query(Playlist).filter_by(playlist_id=playlist_id).first()
 
+def get_favorites_by_user_id(session: Session, user_id):
+    return session.query(Playlist).filter_by(user_id=user_id, name='favorites').first()
+
 def get_playlists_by_user(session: Session, user_id):
     return session.query(Playlist).filter_by(user_id=user_id).all()
 
@@ -124,7 +128,7 @@ def delete_song(session: Session, song_id):
 # ========== PLAYLIST ↔ SONG RELATIONSHIP ==========
 def add_song_to_playlist(session: Session, playlist_id, song_id):
     relation = get_playlist_song(session, playlist_id, song_id)
-    if relation:
+    if not relation:
         relation = PlaylistSong(song_id=song_id, playlist_id=playlist_id)
         session.add(relation)
         session.commit()

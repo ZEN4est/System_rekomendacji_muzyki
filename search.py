@@ -61,6 +61,7 @@ def get_song_in_search_frame(outer_frame: tk.Frame, session: Session,idx, h,
     # --- Binding ---
     def toggle_from_favorites(_event):
         song=add_song_if_not_exists(session, track_id, title, language, decade, artists, genres)
+        print(favorites_set)
         if track_id not in favorites_set:
             add_song_to_playlist(session, favorites_id, song.song_id)
             add_label.config(fg=icon_bright)
