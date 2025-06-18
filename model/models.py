@@ -12,7 +12,7 @@ class PlaylistSong(Base):
     __tablename__ = 'playlistsongs'
 
     playlist_id = Column(Integer, ForeignKey('playlists.playlist_id'), primary_key=True)
-    song_id = Column(Integer, ForeignKey('songs.song_id'), primary_key=True)
+    song_id = Column(String(100), ForeignKey('songs.song_id'), primary_key=True)
 
     # Relationshps (for easier joins)
     playlist = relationship('Playlist', back_populates='songs')
@@ -48,7 +48,7 @@ class Playlist(Base):
 class Song(Base):
     __tablename__ = 'songs'
 
-    song_id = Column(Integer, primary_key=True, autoincrement=True)
+    song_id = Column(String(100), primary_key=True)
     title = Column(String(100), nullable=False)
     language = Column(String(50), nullable=False)
     decade = Column(Integer, nullable=False)
@@ -67,7 +67,7 @@ class Song(Base):
 class SongGenre(Base):
     __tablename__ = 'songgenres'
 
-    song_id = Column(Integer, ForeignKey('songs.song_id'), primary_key=True)
+    song_id = Column(String(100), ForeignKey('songs.song_id'), primary_key=True)
     genre = Column(String(50), primary_key=True)
 
     # Relationships
@@ -77,7 +77,7 @@ class SongGenre(Base):
 class SongArtist(Base):
     __tablename__ = 'songartists'
 
-    song_id = Column(Integer, ForeignKey('songs.song_id'), primary_key=True)
+    song_id = Column(String(100), ForeignKey('songs.song_id'), primary_key=True)
     artist = Column(String(100), primary_key=True)
 
     # Relationships
